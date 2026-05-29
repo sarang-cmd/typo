@@ -1,0 +1,25 @@
+{
+  "name": "typo",
+  "version": "1.0.0",
+  "description": "Premium technical typing speed game with spaced repetition mistake vault, live stats, real-time canvas graph, virtual keyboard heatmap, and Web Audio keystroke click synthesizer.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y http-server -p 3000 ."
+  },
+  "keywords": [
+    "typing",
+    "speed",
+    "game",
+    "spaced-repetition",
+    "leitner",
+    "web-audio",
+    "canvas",
+    "code",
+    "snippets"
+  ],
+  "author": "Typo Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typo | Premium Technical Typing Speed Game</title>
+  <meta name="description" content="Master your coding speed with Typo. Gamified Duolingo-style roadmap pathways, interactive layout toggles, finger guides, leagues, and Web Audio keystroke click synthesis.">
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- SEO Semantic and Resource Prioritization -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+  <!-- SVG Gradient Definitions -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true">
+    <defs>
+      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="hsl(180, 100%, 50%)" />
+        <stop offset="100%" stop-color="hsl(267, 100%, 65%)" />
+      </linearGradient>
+      <linearGradient id="owl-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="hsl(180, 100%, 50%)" />
+        <stop offset="100%" stop-color="hsl(222, 40%, 15%)" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Global Header -->
+  <header>
+    <div class="header-container">
+      <h1 class="logo" id="main-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m18 16 4-4-4-4"/>
+          <path d="m6 8-4 4 4 4"/>
+          <path d="m14.5 4-5 16"/>
+        </svg>
+        Typo
+      </h1>
+      
+      <!-- Nav Tabs for Academy vs Free Practice -->
+      <nav class="main-tabs" role="tablist" aria-label="Game Modes">
+        <button class="tab-btn active" id="tab-path" role="tab" aria-selected="true" aria-controls="academy-view">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+          Academy Path
+        </button>
+        <button class="tab-btn" id="tab-arena" role="tab" aria-selected="false" aria-controls="arena-view">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <path d="M9 3v18"/>
+            <path d="M15 3v18"/>
+            <path d="M3 9h18"/>
+            <path d="M3 15h18"/>
+          </svg>
+          Practice Arena
+        </button>
+      </nav>
+      
+      <div class="nav-actions">
+        <!-- Layout Quick Swapper -->
+        <div class="layout-toggle-group">
+          <button class="layout-btn active" id="btn-layout-qwerty" data-layout="qwerty">QWERTY</button>
+          <button class="layout-btn" id="btn-layout-qwertz" data-layout="qwertz">QWERTZ</button>
+        </div>
+
+        <button class="btn btn-primary" id="open-vault-btn" aria-haspopup="dialog" aria-controls="vault-drawer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <path d="M12 3v18"/>
+            <path d="M3 12h18"/>
+          </svg>
+          Mistake Vault
+          <span class="badge" id="vault-count-badge">0</span>
+        </button>
+        
+        <button class="btn" id="start-tutorial-btn" style="border-color: var(--secondary-accent); color: var(--secondary-accent);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <path d="M12 17h.01"/>
+          </svg>
+          How to Play
+        </button>
+
+        <button class="btn btn-icon" id="open-settings-btn" aria-label="Open Settings" aria-haspopup="dialog" aria-controls="settings-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main>
+    
+    <!-- SECTION 1: ACADEMY ROADMAP VIEW (HERO VIEW) -->
+    <div id="academy-view" class="tab-panel active" role="tabpanel" aria-labelledby="tab-path">
+      <div class="academy-grid">
+        
+        <!-- Winding Timeline Path Map -->
+        <div class="roadmap-container">
+          <div class="roadmap-header">
+            <div>
+              <h2>Typing Roadmap</h2>
+              <p>Climb the developer ladder level by level</p>
+            </div>
+            
+            <!-- Learning Track selector pills -->
+            <div class="track-selector" id="path-track-selector" role="radiogroup" aria-label="Learning Path Selector">
+              <button class="track-btn active" role="radio" aria-checked="true" data-track="javascript">JavaScript</button>
+              <button class="track-btn" role="radio" aria-checked="false" data-track="htmlcss">HTML & CSS</button>
+              <button class="track-btn" role="radio" aria-checked="false" data-track="terminal">Terminal & Git</button>
+              <button class="track-btn" role="radio" aria-checked="false" data-track="symbols">Symbols (Code)</button>
+            </div>
+          </div>
+          
+          <!-- Interactive winding timeline track -->
+          <div class="roadmap-winding-path" id="roadmap-path">
+            <!-- JS will inject timeline nodes here dynamically -->
+          </div>
+        </div>
+        
+        <!-- Sidebar containing Mascot Speeches & Leagues -->
+        <aside class="academy-sidebar">
+          
+          <!-- Animated Mascot Speech Box -->
+          <div class="mascot-card">
+            <div class="mascot-svg-box">
+              <!-- Premium animated SVG Mascot (Typo the Cyber Owl) -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="cyber-owl" id="mascot-avatar">
+                <!-- Glowing Aura -->
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(0, 242, 254, 0.15)" stroke-width="4" stroke-dasharray="8 4" />
+                
+                <!-- Body -->
+                <path d="M50 15 C32 15 28 35 28 60 C28 80 38 85 50 85 C62 85 72 80 72 60 C72 35 68 15 50 15 Z" fill="url(#owl-grad)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
+                
+                <!-- Chest pattern -->
+                <path d="M42 65 L50 58 L58 65 M45 71 L50 66 L55 71" fill="none" stroke="var(--primary-accent)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                
+                <!-- Glitch Tech Ears -->
+                <polygon points="28,25 35,18 38,28" fill="var(--secondary-accent)" />
+                <polygon points="72,25 65,18 62,28" fill="var(--secondary-accent)" />
+                
+                <!-- Cyber concentric Eyes -->
+                <g id="owl-eyes">
+                  <circle cx="40" cy="40" r="11" fill="rgba(0,0,0,0.4)" stroke="var(--glass-border)" stroke-width="1"/>
+                  <circle cx="40" cy="40" r="8" fill="none" stroke="var(--primary-accent)" stroke-width="2" class="eye-glow"/>
+                  <circle cx="40" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+                  
+                  <circle cx="60" cy="40" r="11" fill="rgba(0,0,0,0.4)" stroke="var(--glass-border)" stroke-width="1"/>
+                  <circle cx="60" cy="40" r="8" fill="none" stroke="var(--primary-accent)" stroke-width="2" class="eye-glow"/>
+                  <circle cx="60" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+                </g>
+                
+                <!-- Neon Beak -->
+                <polygon points="50,48 46,55 54,55" fill="var(--primary-accent)" />
+                
+                <!-- Headset bands -->
+                <path d="M26 40 A24 24 0 0 1 74 40" fill="none" stroke="var(--secondary-accent)" stroke-width="2" stroke-dasharray="4 2" opacity="0.8"/>
+              </svg>
+            </div>
+            
+            <div class="mascot-speech-bubble" id="mascot-speech">
+              Hi! I'm Typo. Let's learn to type code at lightspeed! Select a path node to begin.
+            </div>
+          </div>
+          
+          <!-- Duolingo League Leaderboard -->
+          <div class="league-card">
+            <div class="league-header">
+              <div class="league-badge" id="league-current-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span>Gold League</span>
+              </div>
+              <span class="league-timer" id="league-reset-timer">2d 14h left</span>
+            </div>
+            
+            <h3 class="league-title">Weekly League Standings</h3>
+            <div class="league-table" id="league-leaderboard-body">
+              <!-- JS will inject leaderboard rows -->
+            </div>
+          </div>
+          
+        </aside>
+      </div>
+    </div>
+    
+    <!-- SECTION 2: PRACTICE ARENA / ACTIVE TYPING LESSON VIEW -->
+    <div id="arena-view" class="tab-panel" role="tabpanel" aria-labelledby="tab-arena">
+      <div class="arena-layout-container">
+        
+        <!-- Active Lesson / Level Display Bar -->
+        <div class="active-lesson-bar" id="active-lesson-banner" style="display:none;">
+          <button class="btn" id="exit-lesson-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+            &larr; Exit Lesson
+          </button>
+          <div class="lesson-meta-info">
+            <span class="l-track-title" id="lesson-track-name">JavaScript Explorer</span>
+            <span class="l-level-title" id="lesson-level-title">Level 3: Functional Syntax</span>
+          </div>
+          <div class="lesson-progress-container">
+            <div class="lesson-progress-bar" id="lesson-progress-gauge" style="width: 30%"></div>
+          </div>
+        </div>
+
+        <!-- Top-Level Stats Dashboard -->
+        <section class="stats-grid" aria-label="Real-time typing statistics" style="margin-bottom: 1.5rem;">
+          <div class="stat-card" id="stat-wpm-container">
+            <span class="stat-label">Speed</span>
+            <div class="stat-value" id="stat-wpm">0 <span>WPM</span></div>
+            <div class="stat-trend" id="stat-wpm-trend">Active Round Speed</div>
+          </div>
+          
+          <div class="stat-card" id="stat-accuracy-container">
+            <span class="stat-label">Accuracy</span>
+            <div class="stat-value" id="stat-accuracy">100<span>%</span></div>
+            <div class="stat-trend positive" id="stat-accuracy-trend">Keystroke Acc: 100%</div>
+          </div>
+          
+          <div class="stat-card" id="stat-streak-container">
+            <span class="stat-label">Flawless Streak</span>
+            <div class="stat-value" id="stat-streak">0 <span>words</span></div>
+            <div class="stat-trend positive" id="stat-streak-trend">Active run streak</div>
+          </div>
+          
+          <div class="stat-card" id="stat-progress-container">
+            <span class="stat-label">Mistake Level</span>
+            <div class="stat-value" id="stat-level">0 <span>/ 3</span></div>
+            <div class="stat-trend" id="stat-level-trend" style="color: var(--text-muted);">Avg. streak to master</div>
+          </div>
+        </section>
+
+        <!-- Controls / Category selections (hidden during lessons) -->
+        <section class="control-panel" id="arena-config-panel" aria-label="Game configurations" style="margin-bottom: 1.5rem;">
+          <div class="selector-group">
+            <span class="selector-label">Category:</span>
+            <div class="pills-container" id="category-pills" role="radiogroup" aria-label="Category Selection">
+              <button class="pill-btn active" role="radio" aria-checked="true" data-cat="javascript">JS / TS</button>
+              <button class="pill-btn" role="radio" aria-checked="false" data-cat="htmlcss">HTML / CSS</button>
+              <button class="pill-btn" role="radio" aria-checked="false" data-cat="terminal">Terminal</button>
+              <button class="pill-btn" role="radio" aria-checked="false" data-cat="philosophy">Philosophy</button>
+            </div>
+          </div>
+          
+          <div class="selector-group">
+            <span class="selector-label">Mode:</span>
+            <div class="pills-container" id="mode-pills" role="radiogroup" aria-label="Game Mode Selection">
+              <button class="pill-btn active" role="radio" aria-checked="true" data-mode="standard">Normal Stream</button>
+              <button class="pill-btn" role="radio" aria-checked="false" data-mode="spaced-rep" id="spaced-rep-mode-btn">
+                Spaced Repetition
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Active Vault Notification Banner -->
+        <div class="vault-alert-banner" id="vault-alert" style="display: none; margin-bottom: 1.5rem;">
+          <div class="alert-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-accent);">
+              <path d="m12 14 4-4-4-4"/>
+              <path d="M4 20V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14l-4-4H6a2 2 0 0 0-2 2z"/>
+            </svg>
+            <span>Spaced Repetition Active: <strong>Mistake Vault</strong> words injected into next snippet!</span>
+          </div>
+          <button class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" id="practice-vault-direct-btn">Practice Vault Now</button>
+        </div>
+
+        <!-- Arena Mascot Live Widget -->
+        <div class="arena-mascot-widget" id="arena-mascot-card">
+          <div class="arena-mascot-avatar-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="cyber-owl" id="arena-mascot-avatar" style="width: 50px; height: 50px;">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(0, 242, 254, 0.15)" stroke-width="4" stroke-dasharray="8 4" />
+              <path d="M50 15 C32 15 28 35 28 60 C28 80 38 85 50 85 C62 85 72 80 72 60 C72 35 68 15 50 15 Z" fill="url(#owl-grad)" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
+              <path d="M42 65 L50 58 L58 65" fill="none" stroke="var(--primary-accent)" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+              <polygon points="28,25 35,18 38,28" fill="var(--secondary-accent)" />
+              <polygon points="72,25 65,18 62,28" fill="var(--secondary-accent)" />
+              <g class="owl-eyes">
+                <circle cx="40" cy="40" r="11" fill="rgba(0,0,0,0.4)" stroke="var(--glass-border)" stroke-width="1"/>
+                <circle cx="40" cy="40" r="8" fill="none" stroke="var(--primary-accent)" stroke-width="2" class="eye-glow"/>
+                <circle cx="40" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+                <circle cx="60" cy="40" r="11" fill="rgba(0,0,0,0.4)" stroke="var(--glass-border)" stroke-width="1"/>
+                <circle cx="60" cy="40" r="8" fill="none" stroke="var(--primary-accent)" stroke-width="2" class="eye-glow"/>
+                <circle cx="60" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+              </g>
+              <polygon points="50,48 46,55 54,55" fill="var(--primary-accent)" />
+            </svg>
+          </div>
+          <div class="arena-mascot-speech" id="arena-mascot-speech">
+            Welcome to the Arena! Choose a practice category or complete your daily goals to earn rewards!
+          </div>
+        </div>
+
+        <!-- Main typing arena -->
+        <section class="arena-card" aria-label="Typing Practice Area" style="margin-bottom: 1.5rem;">
+          <!-- Inline rewards banner -->
+          <div class="inline-reward-banner" id="inline-reward" style="display: none;">
+            <span class="reward-sparkle">✨</span>
+            <span class="reward-message" id="inline-reward-text">Perfect typing! +10 Streak Bonus XP!</span>
+          </div>
+
+          <div class="typing-viewport" id="typing-box" tabindex="0" role="textbox" aria-multiline="false" aria-label="Typing text screen. Click to focus and start typing.">
+            <div class="caret" id="typing-caret" aria-hidden="true"></div>
+            <div id="target-text" class="text-container">Loading snippet...</div>
+          </div>
+          
+          <input type="text" class="hidden-input" id="keyboard-capture" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true" tabindex="-1">
+          
+          <div class="arena-actions">
+            <div class="hint-text">
+              <kbd>Tab</kbd> or <kbd>Enter</kbd> to restart. Look below keyboard for finger guides!
+            </div>
+            <button class="btn btn-primary" id="restart-round-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M16 3h5v5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M8 21H3v-5"/>
+              </svg>
+              Restart
+            </button>
+          </div>
+        </section>
+
+        <!-- Real-time WPM chart -->
+        <section class="graph-section" aria-label="Speed Performance Chart" style="margin-bottom: 1.5rem;">
+          <div class="graph-header">
+            <h3 class="graph-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18"/>
+                <path d="m19 9-5 5-4-4-3 3"/>
+              </svg>
+              Speed Progression
+            </h3>
+            <span id="chart-realtime-wpm" style="font-size: 0.85rem; font-weight:600; color: var(--primary-accent);">0 WPM</span>
+          </div>
+          <div class="canvas-container">
+            <canvas id="wpm-realtime-chart" aria-label="WPM progress over time chart" role="img"></canvas>
+          </div>
+        </section>
+
+        <!-- Interactive visual QWERTY/QWERTZ keyboard -->
+        <section class="keyboard-section" aria-label="Heatmap Virtual Keyboard" style="margin-bottom: 1.5rem;">
+          <div class="keyboard-container" id="visual-keyboard" aria-hidden="true">
+            <!-- Row 1 -->
+            <div class="keyboard-row">
+              <div class="keycap" data-key="`" data-shift="~">`</div>
+              <div class="keycap" data-key="1" data-shift="!">1</div>
+              <div class="keycap" data-key="2" data-shift="@">2</div>
+              <div class="keycap" data-key="3" data-shift="#">3</div>
+              <div class="keycap" data-key="4" data-shift="$">4</div>
+              <div class="keycap" data-key="5" data-shift="%">5</div>
+              <div class="keycap" data-key="6" data-shift="^">6</div>
+              <div class="keycap" data-key="7" data-shift="&">7</div>
+              <div class="keycap" data-key="8" data-shift="*">8</div>
+              <div class="keycap" data-key="9" data-shift="(">9</div>
+              <div class="keycap" data-key="0" data-shift=")">0</div>
+              <div class="keycap" data-key="-" data-shift="_">-</div>
+              <div class="keycap" data-key="=" data-shift="+">=</div>
+              <div class="keycap key-backspace" data-key="Backspace">Backspace</div>
+            </div>
+            <!-- Row 2 -->
+            <div class="keyboard-row">
+              <div class="keycap key-tab" data-key="Tab">Tab</div>
+              <div class="keycap" data-key="q">Q</div>
+              <div class="keycap" data-key="w">W</div>
+              <div class="keycap" data-key="e">E</div>
+              <div class="keycap" data-key="r">R</div>
+              <div class="keycap" data-key="t">T</div>
+              <div class="keycap" id="keycap-y" data-key="y">Y</div>
+              <div class="keycap" data-key="u">U</div>
+              <div class="keycap" data-key="i">I</div>
+              <div class="keycap" data-key="o">O</div>
+              <div class="keycap" data-key="p">P</div>
+              <div class="keycap" data-key="[" data-shift="{">[</div>
+              <div class="keycap" data-key="]" data-shift="}">]</div>
+              <div class="keycap" data-key="\" data-shift="|">\</div>
+            </div>
+            <!-- Row 3 -->
+            <div class="keyboard-row">
+              <div class="keycap key-caps" data-key="CapsLock">Caps</div>
+              <div class="keycap" data-key="a">A</div>
+              <div class="keycap" data-key="s">S</div>
+              <div class="keycap" data-key="d">D</div>
+              <div class="keycap" data-key="f">F</div>
+              <div class="keycap" data-key="g">G</div>
+              <div class="keycap" data-key="h">H</div>
+              <div class="keycap" data-key="j">J</div>
+              <div class="keycap" data-key="k">K</div>
+              <div class="keycap" data-key="l">L</div>
+              <div class="keycap" data-key=";" data-shift=":">;</div>
+              <div class="keycap" data-key="'" data-shift='Window"'>'</div>
+              <div class="keycap key-enter" data-key="Enter">Enter</div>
+            </div>
+            <!-- Row 4 -->
+            <div class="keyboard-row">
+              <div class="keycap key-shift-l" data-key="ShiftLeft">Shift</div>
+              <div class="keycap" id="keycap-z" data-key="z">Z</div>
+              <div class="keycap" data-key="x">X</div>
+              <div class="keycap" data-key="c">C</div>
+              <div class="keycap" data-key="v">V</div>
+              <div class="keycap" data-key="b">B</div>
+              <div class="keycap" data-key="n">N</div>
+              <div class="keycap" data-key="m">M</div>
+              <div class="keycap" data-key="," data-shift="&lt;">,</div>
+              <div class="keycap" data-key="." data-shift="&gt;">.</div>
+              <div class="keycap" data-key="/" data-shift="?">/</div>
+              <div class="keycap key-shift-r" data-key="ShiftRight">Shift</div>
+            </div>
+            <!-- Row 5 -->
+            <div class="keyboard-row">
+              <div class="keycap key-ctrl" data-key="Control">Ctrl</div>
+              <div class="keycap key-alt" data-key="Alt">Alt</div>
+              <div class="keycap key-cmd" data-key="Meta">Cmd</div>
+              <div class="keycap key-space" data-key=" ">Space</div>
+              <div class="keycap key-cmd" data-key="Meta">Cmd</div>
+              <div class="keycap key-alt" data-key="Alt">Alt</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Posture / Hand Outlines SVG Guide -->
+        <section class="hand-guide-section" aria-label="Optimal Finger Positioning Guide">
+          <div class="hand-guide-title">
+            <span id="finger-instruction">Finger Guide: Click typing box to activate posture highlight</span>
+          </div>
+          
+          <div class="hands-svg-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 90" class="cyber-hands">
+              <!-- Left Hand Outline -->
+              <g id="left-hand-vector">
+                <!-- Hand base -->
+                <path d="M30,85 C30,70 45,65 55,65 C65,65 80,70 80,85 Z" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+                <!-- Fingers -->
+                <line x1="25" y1="80" x2="25" y2="45" id="f-l-pinky" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <line x1="38" y1="78" x2="38" y2="33" id="f-l-ring" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <line x1="51" y1="75" x2="51" y2="25" id="f-l-middle" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <line x1="64" y1="76" x2="64" y2="33" id="f-l-index" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <!-- Thumb -->
+                <line x1="77" y1="80" x2="96" y2="66" id="f-l-thumb" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+              </g>
+              
+              <!-- Right Hand Outline -->
+              <g id="right-hand-vector">
+                <!-- Hand base -->
+                <path d="M280,85 C280,70 295,65 305,65 C315,65 330,70 330,85 Z" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+                <!-- Thumb -->
+                <line x1="283" y1="80" x2="264" y2="66" id="f-r-thumb" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <!-- Fingers -->
+                <line x1="296" y1="76" x2="296" y2="33" id="f-r-index" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <line x1="309" y1="75" x2="309" y2="25" id="f-r-middle" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <line x1="322" y1="78" x2="322" y2="33" id="f-r-ring" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+                <line x1="335" y1="80" x2="335" y2="45" id="f-r-pinky" stroke="var(--bg-tertiary)" stroke-width="7" stroke-linecap="round" />
+              </g>
+            </svg>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer>
+    <div class="footer-container">
+      <div>&copy; 2026 Typo Typo. Premium Dev Typing.</div>
+      <div>Designed for developers who type fast and code faster.</div>
+    </div>
+  </footer>
+
+  <!-- Dialog Panels (Top-layer animations via starting-style) -->
+  
+  <!-- Lesson Node Level Click Preview Modal -->
+  <dialog class="modal-dialog" id="lesson-preview-modal" aria-labelledby="lesson-preview-title">
+    <div class="dialog-header" style="margin-bottom: 1.5rem;">
+      <h2 id="lesson-preview-title" style="font-size: 1.35rem; color: var(--primary-accent);">Functional Syntax</h2>
+      <button class="btn btn-icon" id="close-lesson-preview-btn" aria-label="Close dialog">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="dialog-body" style="gap: 1.25rem;">
+      <div class="lesson-preview-box">
+        <span class="l-preview-label">Lesson Goal</span>
+        <p class="l-preview-desc" id="lesson-preview-desc">Master functional programming symbols.</p>
+        
+        <span class="l-preview-label" style="margin-top: 1rem; display:block;">Target Snippet Preview</span>
+        <pre class="l-preview-code" id="lesson-preview-code">const double = x => x * 2;</pre>
+      </div>
+      
+      <button class="btn btn-primary" id="start-lesson-btn" style="width: 100%; padding: 0.85rem; justify-content: center; font-size: 1rem; font-weight: 700; border-radius: var(--radius-md);">
+        Start Training (+50 XP)
+      </button>
+    </div>
+  </dialog>
+
+  <!-- High-Impact Post-Round Results Screen Dialog -->
+  <dialog class="modal-dialog" id="results-overlay" aria-labelledby="results-main-title" style="max-width: 580px; padding: 2.5rem; text-align: center;">
+    <div class="results-mascot-box">
+      <!-- Reactive Results Owl -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="cyber-owl" style="width: 90px; height: 90px; margin: 0 auto 1rem;" id="results-mascot">
+        <!-- Aura -->
+        <circle cx="50" cy="50" r="38" fill="none" stroke="var(--correct)" stroke-width="2" stroke-dasharray="6 3" />
+        <!-- Body -->
+        <path d="M50 15 C32 15 28 35 28 60 C28 80 38 85 50 85 C62 85 72 80 72 60 C72 35 68 15 50 15 Z" fill="url(#owl-grad)" stroke="var(--correct)" stroke-width="1.5" />
+        <!-- concentric Eyes -->
+        <circle cx="40" cy="40" r="8" fill="none" stroke="var(--correct)" stroke-width="2" class="eye-glow"/>
+        <circle cx="40" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+        <circle cx="60" cy="40" r="8" fill="none" stroke="var(--correct)" stroke-width="2" class="eye-glow"/>
+        <circle cx="60" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+        <!-- Beak -->
+        <polygon points="50,48 46,55 54,55" fill="var(--correct)" />
+      </svg>
+    </div>
+    
+    <h2 id="results-main-title" style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-accent), var(--correct)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">Lesson Complete!</h2>
+    <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 2rem;" id="results-subtitle">Excellent typing. You gained <strong>+50 XP</strong> and advanced in your standings!</p>
+    
+    <!-- Detailed Stat Rings Grid -->
+    <div class="results-stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+      <div class="res-stat-card">
+        <span class="res-lbl">Speed</span>
+        <span class="res-val" id="res-wpm-val">68 <span>WPM</span></span>
+      </div>
+      <div class="res-stat-card">
+        <span class="res-lbl">Real Acc</span>
+        <span class="res-val" id="res-real-val" style="color: var(--correct);">100<span>%</span></span>
+      </div>
+      <div class="res-stat-card">
+        <span class="res-lbl">Keystroke Acc</span>
+        <span class="res-val" id="res-key-val" style="color: var(--secondary-accent);">94<span>%</span></span>
+      </div>
+    </div>
+    
+    <!-- Improvement Areas display -->
+    <div id="results-improvement-area" class="results-tips-box" style="margin-bottom: 2rem; display:none;">
+      <strong>⚠️ Improvement Tips:</strong> You were slightly slower on keys: <span id="results-slow-keys" style="color: var(--incorrect); font-weight:700;">Z, X</span>. Focus on keeping your index finger on their centers next round!
+    </div>
+
+    <!-- CTA options -->
+    <div class="results-ctas" style="display: flex; gap: 1rem; justify-content: center; width:100%;">
+      <button class="btn btn-primary" id="results-next-level-btn" style="flex:1; padding: 0.8rem; justify-content:center;">
+        Next Lesson &rarr;
+      </button>
+      <button class="btn" id="results-share-btn" style="border-color: var(--secondary-accent); color: var(--secondary-accent); padding:0.8rem 1.2rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Download Share Card
+      </button>
+      <button class="btn" id="results-close-btn" style="padding:0.8rem 1.2rem;">Close</button>
+    </div>
+    
+    <!-- Hidden sharing card download helper canvas -->
+    <canvas id="sharing-canvas" width="1200" height="630" style="display:none;"></canvas>
+  </dialog>
+
+  <!-- Preferences Dialog Modal -->
+  <dialog class="modal-dialog" id="settings-modal" aria-labelledby="settings-title">
+    <div class="dialog-header">
+      <h2 id="settings-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        Preferences
+      </h2>
+      <button class="btn btn-icon" id="close-settings-btn" aria-label="Close settings dialog">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="dialog-body">
+      <div class="settings-list">
+        
+        <div class="settings-item">
+          <div class="settings-text">
+            <label for="settings-sound-switch">Mechanical Clicks</label>
+            <span>Play wood-switch clicking sound on keystroke</span>
+          </div>
+          <div class="switch-control">
+            <input type="checkbox" id="settings-sound-switch" checked>
+            <span class="switch-slider"></span>
+          </div>
+        </div>
+        
+        <div class="settings-item">
+          <div class="settings-text">
+            <label for="settings-live-chart-switch">Real-Time Chart</label>
+            <span>Animate WPM line graph dynamically</span>
+          </div>
+          <div class="switch-control">
+            <input type="checkbox" id="settings-live-chart-switch" checked>
+            <span class="switch-slider"></span>
+          </div>
+        </div>
+
+        <div class="settings-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+          <div class="settings-text" style="width: 100%;">
+            <label for="settings-font-size-slider" style="display:flex; justify-content:space-between; width:100%;">
+              <span>Typing Font Size</span>
+              <span id="font-size-indicator" style="color: var(--primary-accent); font-weight: 700;">1.45rem</span>
+            </label>
+            <span>Adjust the spacing size of text typing viewport</span>
+          </div>
+          <input type="range" id="settings-font-size-slider" min="1.1" max="2.0" step="0.05" value="1.45" style="width: 100%; accent-color: var(--primary-accent); margin-top: 0.5rem;">
+        </div>
+
+        <div class="settings-item" style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+          <div class="settings-text">
+            <label>Master Reset</label>
+            <span>Clear the entire LocalStorage "Mistake Vault"</span>
+          </div>
+          <button class="btn" id="reset-vault-data-btn" style="border-color: var(--incorrect); color: var(--incorrect);">
+            Wipe Vault
+          </button>
+        </div>
+        
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Mistake Vault Drawer Dialog -->
+  <dialog class="drawer-dialog" id="vault-drawer" aria-labelledby="vault-title">
+    <div class="dialog-header">
+      <h2 id="vault-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Mistake Vault
+      </h2>
+      <button class="btn btn-icon" id="close-vault-btn" aria-label="Close Mistake Vault dialog">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="dialog-body">
+      <!-- Vault Statistics Summary -->
+      <div class="vault-summary-panel">
+        <div class="summary-stat">
+          <span class="lbl">Active Errors</span>
+          <span class="val" id="vault-summary-active">0</span>
+        </div>
+        <div class="summary-stat" style="border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border);">
+          <span class="lbl">Avg. Streak</span>
+          <span class="val" id="vault-summary-streak">0.0</span>
+        </div>
+        <div class="summary-stat">
+          <span class="lbl">Mastered</span>
+          <span class="val" id="vault-summary-mastered">0</span>
+        </div>
+      </div>
+      
+      <!-- Interactive Quick Add Tool -->
+      <form id="vault-add-word-form" style="display:flex; gap: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem;">
+        <input type="text" id="vault-add-input" placeholder="Type a tricky word..." autocomplete="off" required style="flex: 1; padding: 0.55rem 0.85rem; background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-sans); outline: none;" aria-label="Tricky word input">
+        <button type="submit" class="btn btn-primary" style="padding: 0.55rem 1rem;">Lock In</button>
+      </form>
+      
+      <!-- Tricky Words Scrollable List -->
+      <h3 style="font-size: 0.9rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color: var(--text-secondary); margin-bottom: 0.25rem;">Tricky Words</h3>
+      <div class="vault-scroll-list" id="vault-word-list" aria-label="Mistake vault word listing">
+        <!-- JS will populate items dynamically -->
+      </div>
+    </div>
+  </dialog>
+
+  <!-- New Player Walkthrough Tutorial Dialog -->
+  <dialog class="modal-dialog" id="tutorial-modal" aria-labelledby="tutorial-main-title" style="max-width: 500px;">
+    <div class="dialog-header">
+      <h2 id="tutorial-main-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+        </svg>
+        How to Play
+      </h2>
+      <button class="btn btn-icon" id="close-tutorial-btn" aria-label="Close tutorial">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="dialog-body" style="text-align: center; gap: 1.5rem;">
+      <div class="tutorial-mascot-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="cyber-owl" style="width: 80px; height: 80px; margin: 0 auto 0.5rem;" id="tutorial-mascot">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--primary-accent)" stroke-width="2" stroke-dasharray="6 3" />
+          <path d="M50 15 C32 15 28 35 28 60 C28 80 38 85 50 85 C62 85 72 80 72 60 C72 35 68 15 50 15 Z" fill="url(#owl-grad)" stroke="var(--primary-accent)" stroke-width="1.5" />
+          <circle cx="40" cy="40" r="8" fill="none" stroke="var(--primary-accent)" stroke-width="2" class="eye-glow"/>
+          <circle cx="40" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+          <circle cx="60" cy="40" r="8" fill="none" stroke="var(--primary-accent)" stroke-width="2" class="eye-glow"/>
+          <circle cx="60" cy="40" r="2.5" fill="var(--text-primary)" class="pupil"/>
+          <polygon points="50,48 46,55 54,55" fill="var(--primary-accent)" />
+        </svg>
+      </div>
+
+      <div class="tutorial-slide-container" style="background: rgba(0,0,0,0.25); border: 1px solid var(--glass-border); padding: 1.5rem; border-radius: var(--radius-md); min-height: 150px; display: flex; flex-direction: column; justify-content: center; gap: 0.5rem;">
+        <h3 id="tutorial-slide-title" style="color: var(--primary-accent); font-size: 1.15rem; margin-bottom: 0.25rem;">Welcome to Typo!</h3>
+        <p id="tutorial-slide-desc" style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">Master your programming typing speed through Duolingo-style pathways and real-time posture guides!</p>
+      </div>
+
+      <div class="tutorial-navigation" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 1rem;">
+        <button class="btn" id="prev-tutorial-btn" disabled style="padding: 0.5rem 1rem;">&larr; Prev</button>
+        <span id="tutorial-progress-indicator" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Slide 1 / 4</span>
+        <button class="btn btn-primary" id="next-tutorial-btn" style="padding: 0.5rem 1.25rem;">Next &rarr;</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Cyberpunk Secret Developer Menu Dialog -->
+  <dialog class="modal-dialog" id="dev-menu-modal" aria-labelledby="dev-menu-title" style="max-width: 500px; border-color: var(--secondary-accent); box-shadow: 0 0 25px rgba(168, 85, 247, 0.2);">
+    <div class="dialog-header" style="border-bottom: 1px solid rgba(168, 85, 247, 0.25); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+      <h2 id="dev-menu-title" style="color: var(--secondary-accent); font-family: var(--font-mono); font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span style="color: var(--secondary-accent);">[SYS_DEV_MENU]</span>
+      </h2>
+      <button class="btn btn-icon" id="close-dev-menu-btn" aria-label="Close Developer Menu" style="border-color: var(--secondary-accent); color: var(--secondary-accent);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="dialog-body" style="font-family: var(--font-mono); gap: 1.25rem;">
+      <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; border-bottom: 1px dashed var(--glass-border); padding-bottom: 0.75rem;">
+        WARNING: Sandbox parameters bypassed. Real-time variables modification console active.
+      </p>
+
+      <div class="dev-actions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <button class="btn btn-primary" id="dev-unlock-all-btn" style="border-color: var(--primary-accent); justify-content: center;">
+          🔓 Unlock All Levels
+        </button>
+        <button class="btn btn-primary" id="dev-boost-xp-btn" style="border-color: var(--correct); justify-content: center;">
+          ⚡ Grant +500 XP
+        </button>
+        <button class="btn" id="dev-inject-mistakes-btn" style="border-color: var(--incorrect); color: var(--incorrect); justify-content: center;">
+          ⚠️ Inject Vault Mistakes
+        </button>
+        <button class="btn" id="dev-max-league-btn" style="border-color: hsl(45, 93%, 55%); color: hsl(45, 93%, 55%); justify-content: center;">
+          🏆 Diamond League
+        </button>
+        <button class="btn" id="dev-trigger-sound-btn" style="border-color: var(--text-muted); justify-content: center;">
+          🔊 Test Switch Tone
+        </button>
+        <button class="btn" id="dev-clear-local-btn" style="border-color: var(--incorrect); color: var(--incorrect); justify-content: center;">
+          ☠️ Wipe LocalData
+        </button>
+      </div>
+
+      <div class="dev-log-box" style="background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.75rem; color: var(--correct); min-height: 80px; overflow-y: auto;">
+        SYSTEM READY.
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Game Scripts -->
+  <script src="snippets.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
