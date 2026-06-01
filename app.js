@@ -10,6 +10,220 @@ class SoundSynthesizer {
     this.enabled = true;
   }
 
+  updateCurrencyUI() {
+    const coinsEl = document.getElementById('ui-coins');
+    const gemsEl = document.getElementById('ui-gems');
+    if (coinsEl) coinsEl.textContent = String(this.coins);
+    if (gemsEl) gemsEl.textContent = String(this.gems);
+  }
+
+  showToast(text, timeout = 3200) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const node = document.createElement('div');
+    node.style = 'background:rgba(0,0,0,0.7); color:#fff; padding:0.6rem 0.9rem; border-radius:8px; min-width:180px; box-shadow:0 6px 18px rgba(0,0,0,0.4); font-weight:700;';
+    node.textContent = text;
+    container.appendChild(node);
+    setTimeout(() => {
+      node.style.transition = 'opacity 300ms ease, transform 300ms ease';
+      node.style.opacity = '0';
+      node.style.transform = 'translateY(6px)';
+      setTimeout(() => container.removeChild(node), 350);
+    }, timeout);
+  }
+
+  // --- Friends modal ---
+  openFriendsModal() {
+    if (!this.friendsModal) return;
+    this.renderFriendsList();
+    this.friendsModal.showModal();
+  }
+
+  renderFriendsList() {
+    const listEl = document.getElementById('friends-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    if (!this.friends || this.friends.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--text-muted)">No friends yet.</div>';
+      return;
+    }
+    this.friends.forEach(f => {
+      const row = document.createElement('div');
+      row.style = 'display:flex; justify-content:space-between; align-items:center; padding:0.4rem; border-radius:0.35rem; background:rgba(255,255,255,0.02);';
+      row.innerHTML = `<div style="display:flex; gap:0.6rem; align-items:center;"><div style="width:28px;height:28px;border-radius:50%;background:${f.color||'#666'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">${(f.name||'').slice(0,1).toUpperCase()}</div><div>${f.name}</div></div><button class="btn view-friend-btn" data-name="${f.name}">View</button>`;
+      listEl.appendChild(row);
+    });
+  }
+
+  addFriend() {
+    const input = document.getElementById('friend-add-input');
+    if (!input) return;
+    const name = input.value.trim();
+    if (!name) return;
+    const entry = { name, color: '#'+Math.floor(Math.random()*16777215).toString(16) };
+    this.friends.push(entry);
+    localStorage.setItem('typo_friends', JSON.stringify(this.friends));
+    input.value = '';
+    this.renderFriendsList();
+  }
+
+  openAccountModal() {
+    if (!this.accountModal) return;
+    // populate fields
+    document.getElementById('profile-username').value = this.profile.username || '';
+    document.getElementById('profile-color').value = this.profile.color || '#6b46c1';
+    const avatarEl = document.getElementById('profile-avatar');
+    if (avatarEl) {
+      const initials = (this.profile && this.profile.avatar && this.profile.avatar.initials) || (this.profile && this.profile.username ? this.profile.username.slice(0,2).toUpperCase() : 'TT');
+      const color = (this.profile && this.profile.color) || '#6b46c1';
+      avatarEl.style.background = color;
+      avatarEl.textContent = initials;
+    }
+    // badges
+    const badges = document.getElementById('profile-badges');
+    if (badges) {
+      badges.innerHTML = '';
+      // show achievements and XP milestones
+      const ach = this.loadAchievements();
+      ach.forEach(a => {
+        const el = document.createElement('div');
+        el.style = 'padding:0.4rem; border-radius:0.4rem; background:rgba(255,255,255,0.03);';
+        el.textContent = a.title + (a.earned ? ' ✓' : '');
+        if (a.earned) el.style.boxShadow = '0 0 8px rgba(0,242,254,0.2)';
+        badges.appendChild(el);
+      });
+      const milestones = [100, 500, 1000];
+      milestones.forEach(m => {
+        const el = document.createElement('div');
+        el.style = 'padding:0.4rem; border-radius:0.4rem; background:rgba(255,255,255,0.02);';
+        el.textContent = `${m} XP`; if (this.userXP >= m) el.style.boxShadow = '0 0 6px rgba(168,85,247,0.12)';
+        badges.appendChild(el);
+      });
+    }
+    this.accountModal.showModal();
+  }
+
+  saveProfile() {
+    const name = document.getElementById('profile-username').value || 'Player';
+    const color = document.getElementById('profile-color').value || '#6b46c1';
+    this.profile.username = name;
+    this.profile.color = color;
+    if (!this.profile.avatar) {
+      const initials = name.split(' ').filter(Boolean).map(s => s[0]).slice(0,2).join('').toUpperCase();
+      this.profile.avatar = { initials, color };
+    } else {
+      this.profile.avatar.color = color;
+    }
+    localStorage.setItem('typo_profile', JSON.stringify(this.profile));
+    this.accountModal.close();
+    this.updateHeaderAvatar();
+    this.triggerMascotSpeech(`Profile saved. Hello **${name}**!`);
+  }
+
+  openChestWithCoins() {
+    if (this.coins < 50) {
+      document.getElementById('treasure-result').textContent = 'Not enough coins.';
+      return;
+    }
+    this.coins -= 50;
+    localStorage.setItem('typo_coins', String(this.coins));
+    this.updateCurrencyUI();
+    // disable chest buttons briefly to prevent double-clicks
+    const openCoinsBtn = document.getElementById('open-chest-coins');
+    const openGemsBtn = document.getElementById('open-chest-gems');
+    if (openCoinsBtn) openCoinsBtn.disabled = true;
+    if (openGemsBtn) openGemsBtn.disabled = true;
+    this.resolveChestReward('coin');
+    setTimeout(() => { if (openCoinsBtn) openCoinsBtn.disabled = false; if (openGemsBtn) openGemsBtn.disabled = false; }, 1200);
+  }
+
+  openChestWithGems() {
+    if (this.gems < 1) {
+      document.getElementById('treasure-result').textContent = 'Not enough gems.';
+      return;
+    }
+    this.gems -= 1;
+    localStorage.setItem('typo_gems', String(this.gems));
+    this.updateCurrencyUI();
+    const openCoinsBtn = document.getElementById('open-chest-coins');
+    const openGemsBtn = document.getElementById('open-chest-gems');
+    if (openCoinsBtn) openCoinsBtn.disabled = true;
+    if (openGemsBtn) openGemsBtn.disabled = true;
+    this.resolveChestReward('gem');
+    setTimeout(() => { if (openCoinsBtn) openCoinsBtn.disabled = false; if (openGemsBtn) openGemsBtn.disabled = false; }, 1200);
+  }
+
+  watchAdForChest() {
+    const btn = document.getElementById('watch-ad-btn');
+    if (btn) btn.disabled = true;
+    document.getElementById('treasure-result').textContent = 'Watching ad...';
+    setTimeout(() => {
+      if (btn) btn.disabled = false;
+      // show a small toast that ad finished
+      this.resolveChestReward('ad');
+      this.showToast('Ad finished — chest opened');
+    }, 3000);
+  }
+
+  resolveChestReward(kind) {
+    // simple gacha: reward coins and rare gems
+    const rand = Math.random();
+    let message = '';
+    if (rand < 0.02) { this.gems += 2; message = '🎉 Jackpot! +2 gems'; }
+    else if (rand < 0.2) { const c = 200; this.coins += c; message = `+${c} coins`; }
+    else { const c = 40 + Math.round(Math.random() * 60); this.coins += c; message = `+${c} coins`; }
+    localStorage.setItem('typo_coins', String(this.coins));
+    localStorage.setItem('typo_gems', String(this.gems));
+    this.updateCurrencyUI();
+    document.getElementById('treasure-result').textContent = message;
+    // brief toast summary of reward
+    try { this.showToast(message); } catch (e) { /* noop */ }
+  }
+
+  startVaultPractice() {
+    // Begin a focused vault-only practice session
+    this.vaultPracticeActive = true;
+    this.currentLesson = null;
+    this.activeMode = 'spaced-rep';
+    this.switchTab('arena');
+    // Hide standard category controls for focused practice
+    const cfg = document.getElementById('arena-config-panel');
+    if (cfg) cfg.style.display = 'none';
+    // clear previous injected words and restart
+    this.injectedVaultWords = [];
+    this.restartRound();
+  }
+
+  applyHandTips(enabled) {
+    if (!this.handGuideEl) return;
+    const arenaCard = document.querySelector('.arena-card');
+    if (enabled) {
+      // move hand guide next to typing area
+      try {
+        arenaCard.appendChild(this.handGuideEl);
+        this.handGuideEl.style.width = '220px';
+        this.handGuideEl.style.float = 'right';
+        this.handGuideEl.style.marginLeft = '1rem';
+        this.handGuideEl.style.display = 'block';
+      } catch (e) {
+        console.warn('Could not move hand guide', e);
+      }
+    } else {
+      // restore original location
+      try {
+        if (this._handGuideOriginalParent) {
+          this._handGuideOriginalParent.insertBefore(this.handGuideEl, this._handGuideOriginalNext);
+        }
+        this.handGuideEl.style.float = '';
+        this.handGuideEl.style.marginLeft = '';
+        this.handGuideEl.style.width = '';
+        this.handGuideEl.style.display = '';
+      } catch (e) {
+        console.warn('Could not restore hand guide', e);
+      }
+    }
+  }
+
   lazyInit() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -381,6 +595,8 @@ class GameEngine {
     this.vault = new MistakeVault();
     this.synth = new SoundSynthesizer();
     this.chart = new WpmChart('wpm-realtime-chart');
+    this.resultsChart = null;
+    this.vaultPracticeActive = false;
     
     // HTML Element bindings
     this.targetTextEl = document.getElementById('target-text');
@@ -402,12 +618,24 @@ class GameEngine {
     this.soundSwitch = document.getElementById('settings-sound-switch');
     this.chartSwitch = document.getElementById('settings-live-chart-switch');
     this.fontSizeSlider = document.getElementById('settings-font-size-slider');
+    this.handTipsSwitch = document.getElementById('settings-hand-tips-switch');
+    this.handGuideEl = document.querySelector('.hand-guide-section');
+    this._handGuideOriginalParent = this.handGuideEl ? this.handGuideEl.parentElement : null;
+    this._handGuideOriginalNext = this.handGuideEl ? this.handGuideEl.nextSibling : null;
     
     // Dialog handles
     this.settingsModal = document.getElementById('settings-modal');
     this.vaultDrawer = document.getElementById('vault-drawer');
     this.lessonPreviewModal = document.getElementById('lesson-preview-modal');
     this.resultsOverlay = document.getElementById('results-overlay');
+    this.accountModal = document.getElementById('account-modal');
+    this.treasureModal = document.getElementById('treasure-modal');
+
+    // currencies
+    this.coins = parseInt(localStorage.getItem('typo_coins') || '0', 10);
+    this.gems = parseInt(localStorage.getItem('typo_gems') || '0', 10);
+    this.streak = parseInt(localStorage.getItem('typo_streak') || '0', 10);
+    this.profile = JSON.parse(localStorage.getItem('typo_profile') || '{}');
     
     // System variables
     this.activeCategory = 'javascript';
@@ -438,7 +666,28 @@ class GameEngine {
     
     // Lesson locks (completed indices stored)
     this.unlockedLevels = this.loadUnlockedLevels();
+
+    // Achievements & social
+    this.achievements = this.loadAchievements();
+    this.friends = JSON.parse(localStorage.getItem('typo_friends') || '[]');
+
+    // delegated click handler for friend view buttons
+    const friendsList = document.getElementById('friends-list');
+    if (friendsList) {
+      friendsList.addEventListener('click', (e) => {
+        const btn = e.target.closest && e.target.closest('.view-friend-btn');
+        if (btn) {
+          const name = btn.getAttribute('data-name');
+          const friend = (this.friends || []).find(f => f.name === name);
+          if (friend) this.openFriendProfile(friend);
+        }
+      });
+    }
+
+    const genAvatarBtn = document.getElementById('generate-avatar-btn');
+    if (genAvatarBtn) genAvatarBtn.addEventListener('click', () => this.generateAvatar());
     this.currentLesson = null; // { track, level, text, title }
+    this.completedLessons = Number(localStorage.getItem('typo_completed_lessons') || '0');
     
     // League rival metrics
     this.userXP = parseInt(localStorage.getItem('typo_user_xp') || '450');
@@ -455,6 +704,42 @@ class GameEngine {
     this.switchTab('path');
     this.renderRoadmap();
     this.renderLeagueStandings();
+    // Attempt to sync remote leaderboard if configured, otherwise ensure local fake rivals are present
+    setTimeout(() => this.syncLeaderboardRemote(), 1200);
+  }
+
+  async syncLeaderboardRemote() {
+    try {
+      // If firebase config was filled by the user, attempt to push/read leaderboard
+      if (window.firebaseConfig && window.firebaseConfig.apiKey && !window.firebaseConfig.apiKey.includes('YOUR')) {
+        // dynamic imports of Firebase v9 modular
+        const [{ initializeApp }, { getFirestore, collection, getDocs, query, orderBy, limit }] = await Promise.all([
+          import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js'),
+          import('https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js')
+        ]);
+        const app = initializeApp(window.firebaseConfig);
+        const db = getFirestore(app);
+        const q = query(collection(db, 'leaderboard'), orderBy('xp', 'desc'), limit(10));
+        const snap = await getDocs(q);
+        const rows = [];
+        snap.forEach(d => rows.push(d.data()));
+        if (rows.length > 0) {
+          this.leagueRivals = rows.map(r => ({ name: r.name || 'Anon', xp: r.xp || 0, baseWpm: r.wpm || 0, trend: 'same' }));
+          this.renderLeagueStandings();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Firebase leaderboard sync failed, falling back to local pool.', e);
+    }
+    // Fallback: use local fake rivals helper
+    try {
+      const mod = await import('./firebase/multiplayer.js');
+      this.leagueRivals = mod.fakeRivalsIfNeeded(this.leagueRivals || [], 10);
+      this.renderLeagueStandings();
+    } catch (e) {
+      console.warn('Could not load multiplayer helper; leaving existing rivals.', e);
+    }
   }
 
   loadUnlockedLevels() {
@@ -483,11 +768,27 @@ class GameEngine {
     ];
     
     if (!raw) {
-      localStorage.setItem('typo_league_rivals', JSON.stringify(defaultRivals));
-      return defaultRivals;
+      // ensure there's a larger pool to simulate competition
+      const pool = defaultRivals.slice();
+      const fillerNames = ['AsyncAnna','ZeroBugz','StackSeeker','ByteBandit','NullRef','OOMWatcher','DevNinja','PatchPrince','MergeMage','RefactorRex'];
+      while (pool.length < 10) {
+        const name = fillerNames[Math.floor(Math.random()*fillerNames.length)] + Math.floor(Math.random()*90+10);
+        pool.push({ name, xp: Math.floor(Math.random()*700+50), baseWpm: Math.floor(Math.random()*90+20), trend: 'same' });
+      }
+      localStorage.setItem('typo_league_rivals', JSON.stringify(pool));
+      return pool;
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // top up if too few rivals
+      if (parsed.length < 8) {
+        const fillerNames = ['AsyncAnna','ZeroBugz','StackSeeker','ByteBandit','NullRef','OOMWatcher','DevNinja','PatchPrince','MergeMage','RefactorRex'];
+        while (parsed.length < 10) {
+          const name = fillerNames[Math.floor(Math.random()*fillerNames.length)] + Math.floor(Math.random()*90+10);
+          parsed.push({ name, xp: Math.floor(Math.random()*700+50), baseWpm: Math.floor(Math.random()*90+20), trend: 'same' });
+        }
+      }
+      return parsed;
     } catch(e) {
       return defaultRivals;
     }
@@ -495,6 +796,48 @@ class GameEngine {
 
   saveLeagueRivals() {
     localStorage.setItem('typo_league_rivals', JSON.stringify(this.leagueRivals));
+  }
+
+  openFriendProfile(friend) {
+    const modal = document.getElementById('friend-profile-modal');
+    if (!modal) return;
+    document.getElementById('friend-profile-name').textContent = friend.name || 'Friend';
+    document.getElementById('friend-profile-meta').textContent = `XP: ${friend.xp || 0} • WPM: ${friend.baseWpm || 0}`;
+    const avatar = document.getElementById('friend-profile-avatar');
+    if (avatar) {
+      avatar.style.background = friend.color || '#777';
+      avatar.textContent = (friend.name || 'F').slice(0,2).toUpperCase();
+    }
+    const badges = document.getElementById('friend-profile-badges');
+    if (badges) {
+      badges.innerHTML = '';
+      const sample = [ {title:'First Victory'}, {title:'Perfect Accuracy'} ];
+      sample.forEach(s => {
+        const el = document.createElement('div');
+        el.style = 'padding:0.35rem; border-radius:6px; background:rgba(255,255,255,0.02);';
+        el.textContent = s.title;
+        badges.appendChild(el);
+      });
+    }
+    modal.showModal();
+  }
+
+  generateAvatar() {
+    const name = (document.getElementById('profile-username').value || 'Player').trim();
+    const color = document.getElementById('profile-color').value || '#6b46c1';
+    const initials = name.split(' ').filter(Boolean).map(s => s[0]).slice(0,2).join('').toUpperCase() || name.slice(0,2).toUpperCase();
+    this.profile = this.profile || {};
+    this.profile.username = name;
+    this.profile.color = color;
+    this.profile.avatar = { initials, color };
+    localStorage.setItem('typo_profile', JSON.stringify(this.profile));
+    const avatarEl = document.getElementById('profile-avatar');
+    if (avatarEl) {
+      avatarEl.style.background = color;
+      avatarEl.textContent = initials;
+    }
+    if (this.triggerMascotSpeech) this.triggerMascotSpeech(`Avatar generated for **${name}**`);
+    this.updateHeaderAvatar();
   }
 
   loadStateFromSettings() {
@@ -528,9 +871,104 @@ class GameEngine {
     if (localLayout !== null) {
       this.switchKeyboardLayout(localLayout);
     }
+
+    // Apply hand tips preference if present
+    const localHandTips = localStorage.getItem('typo_hand_tips');
+    if (this.handTipsSwitch) {
+      const hv = localHandTips === 'true';
+      this.handTipsSwitch.checked = hv;
+      this.applyHandTips(hv);
+    }
     
     this.vault.updateUIBadge();
     this.renderHeatmapKeyboard();
+
+    // Init header currency UI and account actions
+    this.updateCurrencyUI();
+    this.updateHeaderAvatar();
+    const accountBtn = document.getElementById('open-account-btn');
+    if (accountBtn) accountBtn.addEventListener('click', () => this.openAccountModal());
+    const closeAccountBtn = document.getElementById('close-account-btn');
+    if (closeAccountBtn) closeAccountBtn.addEventListener('click', () => this.accountModal.close());
+    const saveProfileBtn = document.getElementById('save-profile-btn');
+    if (saveProfileBtn) saveProfileBtn.addEventListener('click', () => this.saveProfile());
+    const viewFriendsBtn = document.getElementById('view-friends-btn');
+    if (viewFriendsBtn) viewFriendsBtn.addEventListener('click', () => this.openFriendsModal());
+    this.friendsModal = document.getElementById('friends-modal');
+    const closeFriendsBtn = document.getElementById('close-friends-btn');
+    if (closeFriendsBtn) closeFriendsBtn.addEventListener('click', () => this.friendsModal.close());
+    const friendAddBtn = document.getElementById('friend-add-btn');
+    if (friendAddBtn) friendAddBtn.addEventListener('click', () => this.addFriend());
+    this.friends = JSON.parse(localStorage.getItem('typo_friends') || '[]');
+    const closeFriendProfileBtn = document.getElementById('close-friend-profile');
+    if (closeFriendProfileBtn) closeFriendProfileBtn.addEventListener('click', () => {
+      const m = document.getElementById('friend-profile-modal'); if (m) m.close();
+    });
+
+    const treasureBtn = document.getElementById('open-treasure-btn');
+    if (treasureBtn) treasureBtn.addEventListener('click', () => this.treasureModal.showModal());
+    const closeTreasureBtn = document.getElementById('close-treasure-btn');
+    if (closeTreasureBtn) closeTreasureBtn.addEventListener('click', () => this.treasureModal.close());
+    const openCoinsBtn = document.getElementById('open-chest-coins');
+    if (openCoinsBtn) openCoinsBtn.addEventListener('click', () => this.openChestWithCoins());
+    const openGemsBtn = document.getElementById('open-chest-gems');
+    if (openGemsBtn) openGemsBtn.addEventListener('click', () => this.openChestWithGems());
+    const watchAdBtn = document.getElementById('watch-ad-btn');
+    if (watchAdBtn) watchAdBtn.addEventListener('click', () => this.watchAdForChest());
+
+    const achBtn = document.getElementById('open-achievements-btn');
+    this.achievementsModal = document.getElementById('achievements-modal');
+    if (achBtn) achBtn.addEventListener('click', () => this.openAchievementsModal());
+    const closeAchievementsBtn = document.getElementById('close-achievements-btn');
+    if (closeAchievementsBtn) closeAchievementsBtn.addEventListener('click', () => { if (this.achievementsModal) this.achievementsModal.close(); });
+  }
+
+  openFriendsModal() {
+    return this.synth.openFriendsModal.call(this);
+  }
+
+  renderFriendsList() {
+    return this.synth.renderFriendsList.call(this);
+  }
+
+  addFriend() {
+    return this.synth.addFriend.call(this);
+  }
+
+  openAccountModal() {
+    return this.synth.openAccountModal.call(this);
+  }
+
+  saveProfile() {
+    return this.synth.saveProfile.call(this);
+  }
+
+  openChestWithCoins() {
+    return this.synth.openChestWithCoins.call(this);
+  }
+
+  openChestWithGems() {
+    return this.synth.openChestWithGems.call(this);
+  }
+
+  watchAdForChest() {
+    return this.synth.watchAdForChest.call(this);
+  }
+
+  resolveChestReward(kind) {
+    return this.synth.resolveChestReward.call(this, kind);
+  }
+
+  startVaultPractice() {
+    return this.synth.startVaultPractice.call(this);
+  }
+
+  applyHandTips(enabled) {
+    return this.synth.applyHandTips.call(this, enabled);
+  }
+
+  showToast(text, timeout = 3200) {
+    return this.synth.showToast.call(this, text, timeout);
   }
 
   initializeEvents() {
@@ -631,10 +1069,16 @@ class GameEngine {
     
     // Practice Vault Direct button
     document.getElementById('practice-vault-direct-btn').addEventListener('click', () => {
-      this.switchTab('arena');
-      const spacedBtn = document.getElementById('spaced-rep-mode-btn');
-      if (spacedBtn) spacedBtn.click();
+      this.startVaultPractice();
     });
+
+    const vaultStartBtn = document.getElementById('vault-start-practice-btn');
+    if (vaultStartBtn) {
+      vaultStartBtn.addEventListener('click', () => {
+        this.vaultDrawer.close();
+        this.startVaultPractice();
+      });
+    }
     
     // Settings switches
     this.soundSwitch.addEventListener('change', (e) => {
@@ -647,6 +1091,13 @@ class GameEngine {
       localStorage.setItem('typo_chart_enabled', e.target.checked);
       this.chart.resize();
     });
+
+    if (this.handTipsSwitch) {
+      this.handTipsSwitch.addEventListener('change', (e) => {
+        localStorage.setItem('typo_hand_tips', e.target.checked);
+        this.applyHandTips(e.target.checked);
+      });
+    }
     
     this.fontSizeSlider.addEventListener('input', (e) => {
       const val = e.target.value;
@@ -691,71 +1142,95 @@ class GameEngine {
     document.getElementById('close-vault-btn').addEventListener('click', () => this.vaultDrawer.close());
     
     document.getElementById('close-lesson-preview-btn').addEventListener('click', () => this.lessonPreviewModal.close());
-    
-    // Start lesson node trigger inside modal preview
-    document.getElementById('start-lesson-btn').addEventListener('click', () => {
-      this.lessonPreviewModal.close();
-      if (this.currentLesson) {
-        // Toggle view
-        this.switchTab('arena');
-        
-        // Hide standard Category configs during active roadmap lessons
-        document.getElementById('arena-config-panel').style.display = 'none';
-        
-        // Render lesson top progress banner
-        const banner = document.getElementById('active-lesson-banner');
-        banner.style.display = 'flex';
-        
-        const trackTitle = this.activePathTrack === 'javascript' ? 'JavaScript Explorer' :
-                           this.activePathTrack === 'htmlcss' ? 'HTML & CSS Builder' :
-                           this.activePathTrack === 'terminal' ? 'Terminal & Git Commander' : 'Symbols Master';
-        
-        document.getElementById('lesson-track-name').textContent = trackTitle;
-        document.getElementById('lesson-level-title').textContent = `Level ${this.currentLesson.level}: ${this.currentLesson.title}`;
-        document.getElementById('lesson-progress-gauge').style.width = '0%';
-        
-        // Start Round
-        this.restartRound();
+    // Lesson preview navigation buttons
+    const prevBtn = document.getElementById('lesson-prev-ex-btn');
+    const nextBtn = document.getElementById('lesson-next-ex-btn');
+    const skipBtn = document.getElementById('lesson-skip-ex-btn');
+    const finishBtn = document.getElementById('lesson-finish-btn');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+      if (!this.currentLesson) return;
+      this.currentLesson.exerciseIndex = Math.max(0, (this.currentLesson.exerciseIndex || 0) - 1);
+      this.openLessonPreview(this.currentLesson.track, this.currentLesson.level);
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+      if (!this.currentLesson) return;
+      const lastIdx = (this.currentLesson.exercises ? this.currentLesson.exercises.length : 1) - 1;
+      this.currentLesson.exerciseIndex = Math.min(lastIdx, (this.currentLesson.exerciseIndex || 0) + 1);
+      this.openLessonPreview(this.currentLesson.track, this.currentLesson.level);
+    });
+    if (skipBtn) skipBtn.addEventListener('click', () => {
+      if (!this.currentLesson) return;
+      const lastIdx = (this.currentLesson.exercises ? this.currentLesson.exercises.length : 1) - 1;
+      if ((this.currentLesson.exerciseIndex || 0) < lastIdx) {
+        this.currentLesson.exerciseIndex++;
+        this.openLessonPreview(this.currentLesson.track, this.currentLesson.level);
       }
     });
-    
-    // Exit active lesson banner
-    document.getElementById('exit-lesson-btn').addEventListener('click', () => {
+    if (finishBtn) finishBtn.addEventListener('click', () => {
+      // mark as completed and unlock next if required
+      if (!this.currentLesson) return;
+      const track = this.currentLesson.track;
+      const unlocked = this.unlockedLevels[track] || 1;
+      if (this.currentLesson.level === unlocked) {
+        this.unlockedLevels[track] = unlocked + 1;
+        this.saveUnlockedLevels();
+        this.renderRoadmap();
+      }
+      this.lessonPreviewModal.close();
+    });
+    // Exit active lesson button
+    const exitBtn = document.getElementById('exit-lesson-btn');
+    if (exitBtn) exitBtn.addEventListener('click', () => {
       this.currentLesson = null;
       document.getElementById('active-lesson-banner').style.display = 'none';
       document.getElementById('arena-config-panel').style.display = 'flex';
       this.switchTab('path');
+      this.triggerMascotSpeech('Exited lesson. Academy view restored.');
+    });
+    
+    // Start lesson node trigger inside modal preview
+    document.getElementById('start-lesson-btn').addEventListener('click', () => {
+      document.getElementById('lesson-level-title').textContent = `Level ${this.currentLesson.level}: ${this.currentLesson.title}`;
+      this.lessonPreviewModal.close();
+        if (this.currentLesson) {
+          // Toggle view to arena but keep the Academy tab visually active
+          this.switchTab('arena');
+          // Keep Academy tab visually active while in-lesson
+          const pathTab = document.getElementById('tab-path');
+          const arenaTab = document.getElementById('tab-arena');
+          if (pathTab && arenaTab) {
+            arenaTab.classList.remove('active');
+            arenaTab.setAttribute('aria-selected', 'false');
+            pathTab.classList.add('active');
+            pathTab.setAttribute('aria-selected', 'true');
+          }
+
+          // Hide standard Category configs during active roadmap lessons
+          document.getElementById('arena-config-panel').style.display = 'none';
+
+          // Render lesson top progress banner
+          const banner = document.getElementById('active-lesson-banner');
+          banner.style.display = 'flex';
+
+          const trackTitle = this.activePathTrack === 'javascript' ? 'JavaScript Explorer' :
+                             this.activePathTrack === 'htmlcss' ? 'HTML & CSS Builder' :
+                             this.activePathTrack === 'terminal' ? 'Terminal & Git Commander' : 'Symbols Master';
+
+          document.getElementById('lesson-track-name').textContent = trackTitle;
+          document.getElementById('lesson-level-title').textContent = `Level ${this.currentLesson.level}: ${this.currentLesson.title}`;
+          document.getElementById('lesson-progress-gauge').style.width = '0%';
+
+          // Initialize exercise index and start first exercise
+          this.currentLesson.exerciseIndex = 0;
+          this.restartRound();
+        }
     });
     
     // Results dialog commands
     document.getElementById('results-close-btn').addEventListener('click', () => this.resultsOverlay.close());
     document.getElementById('results-share-btn').addEventListener('click', () => this.exportResultsImageCard());
+
     
-    document.getElementById('results-next-level-btn').addEventListener('click', () => {
-      this.resultsOverlay.close();
-      
-      if (this.currentLesson) {
-        const nextLevel = this.currentLesson.level + 1;
-        const list = window.PATH_SNIPPETS[this.currentLesson.track];
-        
-        if (nextLevel <= list.length) {
-          // Open preview modal for the next level automatically!
-          this.openLessonPreview(this.currentLesson.track, nextLevel);
-        } else {
-          // Finished track!
-          this.currentLesson = null;
-          this.switchTab('path');
-          this.triggerMascotSpeech("🎉 Congratulations! You have fully mastered this learning path! Try another track now.");
-        }
-      } else {
-        this.switchTab('path');
-      }
-    });
-    
-    // Click outside backdrop triggers modal close natively
-    this.settingsModal.addEventListener('click', (e) => {
-      if (e.target === this.settingsModal) this.settingsModal.close();
-    });
     this.vaultDrawer.addEventListener('click', (e) => {
       if (e.target === this.vaultDrawer) this.vaultDrawer.close();
     });
@@ -765,6 +1240,31 @@ class GameEngine {
     this.resultsOverlay.addEventListener('click', (e) => {
       if (e.target === this.resultsOverlay) this.resultsOverlay.close();
     });
+    this.resultsOverlay.addEventListener('close', () => {
+      // If lesson finished, cleanup visual markers
+      const pathTab = document.getElementById('tab-path');
+      if (pathTab && !this.currentLesson) pathTab.classList.remove('active-in-lesson');
+      const banner = document.getElementById('active-lesson-banner');
+      if (banner && !this.currentLesson) banner.style.display = 'none';
+      const cfg = document.getElementById('arena-config-panel');
+      if (cfg && !this.currentLesson) cfg.style.display = 'flex';
+    });
+  }
+
+  handleKeycapHighlight(event, active) {
+    const key = (event.key || '').toLowerCase();
+    const lookup = key === ' ' ? ' ' : key;
+    const cap = document.querySelector(`.keycap[data-key="${lookup}"]`);
+    if (!cap) return;
+    if (active) {
+      cap.classList.add('active-press');
+      cap.style.transform = 'translateY(1px)';
+      cap.style.boxShadow = '0 0 10px rgba(56, 189, 248, 0.4)';
+    } else {
+      cap.classList.remove('active-press');
+      cap.style.transform = '';
+      cap.style.boxShadow = '';
+    }
   }
 
   switchTab(tabId) {
@@ -889,17 +1389,25 @@ class GameEngine {
     const item = list.find(l => l.level === level);
     if (!item) return;
     
+    // Support legacy single-text items or new lesson objects with exercises
+    const exercises = item.exercises || (item.text ? [item.text] : []);
     this.currentLesson = {
       track: track,
       level: level,
-      text: item.text,
-      title: item.title
+      title: item.title,
+      desc: item.desc,
+      exercises: exercises,
+      exerciseIndex: 0
     };
     
     // Set preview details
     document.getElementById('lesson-preview-title').textContent = `Level ${level}: ${item.title}`;
     document.getElementById('lesson-preview-desc').textContent = item.desc;
-    document.getElementById('lesson-preview-code').textContent = item.text;
+    const currentIdx = this.currentLesson.exerciseIndex || 0;
+    const total = this.currentLesson.exercises ? this.currentLesson.exercises.length : 1;
+    document.getElementById('lesson-preview-code').textContent = this.currentLesson.exercises[currentIdx] || item.text || '';
+    const countEl = document.getElementById('lesson-preview-count');
+    if (countEl) countEl.textContent = `Exercise ${currentIdx + 1} / ${total}`;
     
     this.lessonPreviewModal.showModal();
     
@@ -1068,12 +1576,14 @@ class GameEngine {
   generateText() {
     // Check if loading active lesson text
     if (this.currentLesson) {
-      return this.currentLesson.text;
+      // Return the current exercise text for multi-exercise lessons
+      const idx = this.currentLesson.exerciseIndex || 0;
+      return (this.currentLesson.exercises && this.currentLesson.exercises[idx]) || '';
     }
     
     const list = window.SNIPPETS[this.activeCategory] || window.SNIPPETS.javascript;
     const activeErrors = this.vault.getActiveMistakes();
-    const injectEnabled = this.activeMode === 'spaced-rep' && activeErrors.length > 0;
+    const injectEnabled = this.activeMode === 'spaced-rep' && activeErrors.length > 0 && this.vaultPracticeActive;
     
     if (injectEnabled) {
       this.injectedVaultWords = this.vault.getPriorityInjectionWords(2);
@@ -1129,9 +1639,34 @@ class GameEngine {
     this.secondsElapsed = 0;
     
     this.wpmHistory = [];
+    // Disable live arena chart during lessons to show final progression only
     this.chart.clear();
+    this.chart.enabled = !this.currentLesson && this.chartSwitch.checked;
+
+    // If inside a lesson, update progress gauge and preview count
+    if (this.currentLesson) {
+      const lesson = this.currentLesson;
+      const idx = lesson.exerciseIndex || 0;
+      const total = lesson.exercises ? lesson.exercises.length : 1;
+      const pct = Math.round((idx / total) * 100);
+      const gauge = document.getElementById('lesson-progress-gauge');
+      if (gauge) gauge.style.width = `${pct}%`;
+      const countEl = document.getElementById('lesson-preview-count');
+      if (countEl) countEl.textContent = `Exercise ${idx + 1} / ${total}`;
+      document.getElementById('lesson-level-title').textContent = `Level ${this.currentLesson.level}: ${this.currentLesson.title}`;
+    }
     
     this.updateStatsDisplay();
+
+    // If we're inside a lesson with multiple exercises, advance to next exercise
+    if (this.currentLesson) {
+      const lesson = this.currentLesson;
+      const lastIdx = (lesson.exercises ? lesson.exercises.length : 1) - 1;
+      if (lesson.exerciseIndex < lastIdx) {
+        // move to next exercise within the same lesson on restart (handled after completion)
+        // no-op here — completeRound will handle showing results and advancing the exercise index
+      }
+    }
     
     this.targetTextEl.innerHTML = '';
     this.characters = [];
@@ -1334,9 +1869,15 @@ class GameEngine {
       
       const wpm = this.calculateLiveWpm();
       this.wpmHistory.push({ time: this.secondsElapsed, wpm: wpm });
-      
-      this.chart.update(this.wpmHistory);
-      document.getElementById('chart-realtime-wpm').textContent = `${wpm} WPM`;
+
+      // Do not update the live chart while an active roadmap lesson is running
+      if (!this.currentLesson && this.chart.enabled) {
+        this.chart.update(this.wpmHistory);
+        document.getElementById('chart-realtime-wpm').textContent = `${wpm} WPM`;
+      } else {
+        // Keep realtime label stable while in lesson
+        document.getElementById('chart-realtime-wpm').textContent = `${wpm} WPM`;
+      }
       this.updateStatsDisplay();
     }, 1000);
   }
@@ -1418,6 +1959,11 @@ class GameEngine {
       });
       this.vault.updateUIBadge();
     }
+    // If we were running an explicit vault practice session, turn it off now
+    if (this.vaultPracticeActive) {
+      this.vaultPracticeActive = false;
+      this.injectedVaultWords = [];
+    }
     
     // Calculations
     const finalWpm = this.calculateLiveWpm();
@@ -1446,6 +1992,21 @@ class GameEngine {
     
     this.userXP += earnedXP;
     localStorage.setItem('typo_user_xp', this.userXP);
+
+    // Award small currency rewards
+    const coinReward = Math.max(1, Math.round(finalWpm / 10) + (realAcc === 100 ? 5 : 0));
+    this.coins += coinReward;
+    // small chance for gem on perfect
+    if (realAcc === 100 && Math.random() < 0.25) {
+      this.gems += 1;
+    }
+    localStorage.setItem('typo_coins', String(this.coins));
+    localStorage.setItem('typo_gems', String(this.gems));
+    // update streak
+    localStorage.setItem('typo_streak', String(this.currentStreak));
+    this.updateCurrencyUI();
+    // Check achievements
+    this.checkAchievements(finalWpm, realAcc, earnedXP);
     
     // Check if user promoted in league standing! (If you reach rank 1, advance league)
     let advancedLeague = false;
@@ -1474,9 +2035,132 @@ class GameEngine {
         this.renderRoadmap();
       }
     }
+
+    // Track completed lessons count for achievements
+    if (this.currentLesson && realAcc >= 90) {
+      const key = 'typo_completed_lessons';
+      const raw = Number(localStorage.getItem(key) || '0');
+      const next = raw + 1;
+      localStorage.setItem(key, String(next));
+      this.completedLessons = next;
+    }
     
     // Trigger results screen overlay dialog
     this.showResultsScreen(finalWpm, realAcc, keystrokeAcc, earnedXP, advancedLeague);
+
+    // If this was a multi-exercise lesson and there are more exercises, auto-advance after a short pause
+    if (this.currentLesson) {
+      const lesson = this.currentLesson;
+      const lastIdx = (lesson.exercises ? lesson.exercises.length : 1) - 1;
+      if (lesson.exerciseIndex < lastIdx) {
+        setTimeout(() => {
+          try { this.resultsOverlay.close(); } catch(e) {}
+          lesson.exerciseIndex++;
+          this.restartRound();
+        }, 1400);
+      }
+    }
+  }
+
+  // Achievements system
+  loadAchievements() {
+    const raw = localStorage.getItem('typo_achievements');
+    if (!raw) {
+      // seed achievement definitions
+      const defs = [
+        { id: 'first_win', title: 'First Victory', desc: 'Complete your first round', earned: false },
+        { id: 'perfect_one', title: 'Perfect Accuracy', desc: 'Score 100% accuracy in a round', earned: false },
+        { id: 'streak_5', title: '5 in a Row', desc: 'Reach a streak of 5 flawless rounds', earned: false },
+        { id: 'xp_500', title: '500 XP', desc: 'Accumulate 500 XP total', earned: false },
+        { id: 'lesson_1', title: 'Lesson Starter', desc: 'Complete your first lesson', earned: false },
+        { id: 'lesson_5', title: 'Lesson Builder', desc: 'Complete 5 lessons', earned: false },
+        { id: 'lesson_10', title: 'Lesson Architect', desc: 'Complete 10 lessons', earned: false }
+      ];
+      localStorage.setItem('typo_achievements', JSON.stringify(defs));
+      return defs;
+    }
+    try { return JSON.parse(raw); } catch(e) { return []; }
+  }
+
+  checkAchievements(wpm, realAcc, earnedXP) {
+    if (!this.achievements) this.achievements = this.loadAchievements();
+    let changed = false;
+    // first win
+    const firstWin = this.achievements.find(a => a.id === 'first_win');
+    if (firstWin && !firstWin.earned) { firstWin.earned = true; changed = true; this.triggerMascotSpeech('🏆 New Achievement: First Victory'); }
+    // perfect
+    const perfect = this.achievements.find(a => a.id === 'perfect_one');
+    if (perfect && !perfect.earned && realAcc === 100) { perfect.earned = true; changed = true; this.triggerMascotSpeech('✨ New Achievement: Perfect Accuracy'); }
+    // streak
+    const streak = this.achievements.find(a => a.id === 'streak_5');
+    if (streak && !streak.earned && this.currentStreak >= 5) { streak.earned = true; changed = true; this.triggerMascotSpeech('🔥 New Achievement: 5 Flawless Streak'); }
+    // xp
+    const xpAch = this.achievements.find(a => a.id === 'xp_500');
+    if (xpAch && !xpAch.earned && this.userXP >= 500) { xpAch.earned = true; changed = true; this.triggerMascotSpeech('🎖 New Achievement: 500 XP'); }
+
+    // lesson completions
+    const completed = Number(localStorage.getItem('typo_completed_lessons') || '0');
+    const l1 = this.achievements.find(a => a.id === 'lesson_1');
+    if (l1 && !l1.earned && completed >= 1) { l1.earned = true; changed = true; this.triggerMascotSpeech('🏅 New Achievement: Lesson Starter'); }
+    const l5 = this.achievements.find(a => a.id === 'lesson_5');
+    if (l5 && !l5.earned && completed >= 5) { l5.earned = true; changed = true; this.triggerMascotSpeech('🏅 New Achievement: Lesson Builder'); }
+    const l10 = this.achievements.find(a => a.id === 'lesson_10');
+    if (l10 && !l10.earned && completed >= 10) { l10.earned = true; changed = true; this.triggerMascotSpeech('🏅 New Achievement: Lesson Architect'); }
+
+    if (changed) {
+      localStorage.setItem('typo_achievements', JSON.stringify(this.achievements));
+      // update profile badges display
+      const badges = document.getElementById('profile-badges');
+      if (badges) {
+        badges.innerHTML = '';
+        this.achievements.forEach(a => {
+          const el = document.createElement('div');
+          el.style = 'padding:0.4rem; border-radius:0.4rem; background:rgba(255,255,255,0.02);';
+          el.textContent = a.title + (a.earned ? ' ✓' : '');
+          if (a.earned) el.style.boxShadow = '0 0 8px rgba(0,242,254,0.2)';
+          badges.appendChild(el);
+        });
+        // also append completed lesson count
+        const completed = Number(localStorage.getItem('typo_completed_lessons') || '0');
+        const el2 = document.createElement('div');
+        el2.style = 'padding:0.4rem; border-radius:0.4rem; background:rgba(255,255,255,0.01);';
+        el2.textContent = `Lessons completed: ${completed}`;
+        badges.appendChild(el2);
+      }
+      this.showToast('New achievement unlocked!');
+    }
+  }
+
+  openAchievementsModal() {
+    if (!this.achievements) this.achievements = this.loadAchievements();
+    const container = document.getElementById('achievements-list');
+    if (!container) return;
+    container.innerHTML = '';
+    this.achievements.forEach(a => {
+      const el = document.createElement('div');
+      el.style = 'padding:0.6rem; min-width:140px; border-radius:8px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column; gap:0.25rem;';
+      el.innerHTML = `<div style="font-weight:800">${a.title}</div><div style="font-size:0.85rem; color:var(--text-muted)">${a.desc}</div>`;
+      if (a.earned) el.style.boxShadow = '0 0 10px rgba(0,242,254,0.08)';
+      container.appendChild(el);
+    });
+    if (this.achievementsModal) this.achievementsModal.showModal();
+  }
+
+  updateHeaderAvatar() {
+    const el = document.getElementById('header-avatar');
+    if (!el) return;
+    const prof = this.profile || {};
+    const initials = (prof.avatar && prof.avatar.initials) || (prof.username ? prof.username.slice(0,2).toUpperCase() : 'TT');
+    const color = (prof.avatar && prof.avatar.color) || prof.color || '#6b46c1';
+    el.style.background = color;
+    el.textContent = initials;
+  }
+
+  updateCurrencyUI() {
+    const coinsEl = document.getElementById('ui-coins');
+    const gemsEl = document.getElementById('ui-gems');
+    if (coinsEl) coinsEl.textContent = String(this.coins || 0);
+    if (gemsEl) gemsEl.textContent = String(this.gems || 0);
   }
 
   showResultsScreen(wpm, realAcc, keystrokeAcc, xp, advancedLeague) {
@@ -1495,7 +2179,7 @@ class GameEngine {
         ? `You completed the roadmap level successfully! Gained <strong>+${xp} XP</strong>.`
         : `Roadmap lessons require at least <strong>90% Real Accuracy</strong> to advance. Fix your typos!`;
       
-      nextBtn.textContent = realAcc >= 90 ? "Next Level &rarr;" : "Retry Lesson";
+      nextBtn.innerHTML = realAcc >= 90 ? "Next Level &rarr;" : "Retry Lesson";
       if (realAcc < 90) {
         // Force retry level instead of incrementing
         nextBtn.onclick = () => {
@@ -1504,12 +2188,12 @@ class GameEngine {
         };
       } else {
         // Restore standard routing
-        nextBtn.onclick = null;
+        nextBtn.onclick = () => { this.resultsOverlay.close(); const nextLevel = this.currentLesson.level + 1; const list = window.PATH_SNIPPETS[this.currentLesson.track]; if (nextLevel <= list.length) { this.openLessonPreview(this.currentLesson.track, nextLevel); } else { this.currentLesson = null; this.switchTab("path"); this.triggerMascotSpeech("🎉 Congratulations! You have fully mastered this learning path! Try another track now."); } };
       }
     } else {
       titleEl.textContent = "Arena Round Complete!";
       subtitleEl.innerHTML = `You completed the practice arena! Gained <strong>+${xp} XP</strong>.`;
-      nextBtn.textContent = "Back to Roadmap &rarr;";
+      nextBtn.innerHTML = "Back to Roadmap &rarr;";
       nextBtn.onclick = () => {
         this.resultsOverlay.close();
         this.switchTab('path');
@@ -1538,6 +2222,19 @@ class GameEngine {
         tipsBox.style.display = 'block';
       } else {
         tipsBox.style.display = 'none';
+      }
+      
+      // Render final WPM progression chart on results overlay (disable live chart)
+      try {
+        if (this.chart) this.chart.enabled = false;
+        const resultsCanvas = document.getElementById('results-wpm-chart');
+        if (resultsCanvas) {
+          if (!this.resultsChart) this.resultsChart = new WpmChart('results-wpm-chart');
+          this.resultsChart.enabled = true;
+          this.resultsChart.update(this.wpmHistory || []);
+        }
+      } catch (e) {
+        console.warn('Failed to render results chart', e);
       }
     } else {
       tipsBox.style.display = 'none';
