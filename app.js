@@ -178,8 +178,11 @@ class SoundSynthesizer {
     localStorage.setItem('typo_gems', String(this.gems));
     this.updateCurrencyUI();
     document.getElementById('treasure-result').textContent = message;
-    // brief toast summary of reward
-    try { this.showToast(message); } catch (e) { /* noop */ }
+    // Award small XP for opening chests
+    let xpGain = kind === 'gem' ? 15 : kind === 'ad' ? 6 : 5;
+    this.userXP = (this.userXP || 0) + xpGain;
+    localStorage.setItem('typo_user_xp', String(this.userXP));
+    try { this.showToast(`${message} • +${xpGain} XP`); } catch (e) { /* noop */ }
   }
 
   startVaultPractice() {
