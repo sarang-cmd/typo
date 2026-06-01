@@ -65,6 +65,7 @@ class SoundSynthesizer {
     localStorage.setItem('typo_friends', JSON.stringify(this.friends));
     input.value = '';
     this.renderFriendsList();
+    try { this.showToast(`Friend added: ${entry.name}`); } catch(e) {}
   }
 
   openAccountModal() {
@@ -117,6 +118,7 @@ class SoundSynthesizer {
     localStorage.setItem('typo_profile', JSON.stringify(this.profile));
     this.accountModal.close();
     this.updateHeaderAvatar();
+    try { this.showToast(`Profile saved: ${name}`); } catch(e) {}
     this.triggerMascotSpeech(`Profile saved. Hello **${name}**!`);
   }
 
@@ -838,6 +840,7 @@ class GameEngine {
     }
     if (this.triggerMascotSpeech) this.triggerMascotSpeech(`Avatar generated for **${name}**`);
     this.updateHeaderAvatar();
+    try { this.showToast('Avatar generated'); } catch(e) {}
   }
 
   loadStateFromSettings() {
